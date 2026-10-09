@@ -19,7 +19,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5500',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, file://) or any localhost port
+    if (!origin || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, true); // Permissive for dev
+  },
   credentials: true
 }));
 

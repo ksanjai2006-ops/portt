@@ -1,6 +1,6 @@
 /**
  * Admin Authentication & CMS Management
- * Portfolio Sanjai K — Frontend (API-connected)
+ * Portfolio Sanjai K — Frontend (API-connected + Local Fallback)
  */
 
 (function () {
@@ -8,6 +8,10 @@
 
   const API_BASE = 'http://localhost:5000/api';
   const SESSION_KEY = 'sanjai_admin_session';
+
+  // Fallback Credentials for Offline / Standalone mode
+  const FALLBACK_USER = 'admin';
+  const FALLBACK_PASS = 'admin123';
 
   // Elements
   const adminLoginModalEl = document.getElementById('adminLoginModal');
@@ -22,12 +26,14 @@
     bindAdminEvents();
   });
 
-  // Check session status with backend on load
+  // Check session status (try backend, fallback to localStorage)
   async function checkAuthStatus() {
+    const isLoggedLocal = localStorage.getItem(SESSION_KEY) === 'true';
+
     try {
       const res = await fetch(`${API_BASE}/auth/status`, { credentials: 'include' });
       const data = await res.json();
-      if (data.loggedIn) {
+      if (data.loggedIn || isLoggedLocal) {
         localStorage.setItem(SESSION_KEY, 'true');
         enableAdminMode();
       } else {
@@ -35,9 +41,8 @@
         disableAdminMode();
       }
     } catch (err) {
-      // Backend not reachable — fallback to localStorage
-      const isLogged = localStorage.getItem(SESSION_KEY) === 'true';
-      if (isLogged) enableAdminMode();
+      // Backend offline — rely on localStorage state
+      if (isLoggedLocal) enableAdminMode();
       else disableAdminMode();
     }
   }
@@ -49,6 +54,15 @@
         const username = document.getElementById('adminUsername').value.trim();
         const password = document.getElementById('adminPassword').value.trim();
 
+        if (!username || !password) {
+          showError("Please enter both username and password.");
+          return;
+        }
+
+        let loginSuccess = false;
+        let noticeMessage = "Welcome back, Admin!";
+
+        // 1. Try Backend API
         try {
           const res = await fetch(`${API_BASE}/auth/login`, {
             method: 'POST',
@@ -58,28 +72,34 @@
           });
 
           const data = await res.json();
-
           if (data.success) {
-            localStorage.setItem(SESSION_KEY, 'true');
-            if (adminLoginError) adminLoginError.classList.add('d-none');
-
-            const modalInstance = bootstrap.Modal.getInstance(adminLoginModalEl);
-            if (modalInstance) modalInstance.hide();
-            adminLoginForm.reset();
-
-            enableAdminMode();
-            showNotification('Welcome back, Admin!', 'success');
+            loginSuccess = true;
           } else {
-            if (adminLoginError) {
-              adminLoginError.textContent = data.message || 'Invalid credentials!';
-              adminLoginError.classList.remove('d-none');
-            }
+            showError(data.message || "Invalid username or password!");
+            return;
           }
         } catch (err) {
-          if (adminLoginError) {
-            adminLoginError.textContent = 'Server unreachable. Please start the backend.';
-            adminLoginError.classList.remove('d-none');
+          // 2. Backend unreachable — Fallback to local authentication
+          console.warn("Backend API unreachable. Falling back to client-side auth.");
+          if (username === FALLBACK_USER && password === FALLBACK_PASS) {
+            loginSuccess = true;
+            noticeMessage = "Welcome back, Admin! (Offline Mode)";
+          } else {
+            showError("Invalid username or password!");
+            return;
           }
+        }
+
+        if (loginSuccess) {
+          localStorage.setItem(SESSION_KEY, 'true');
+          if (adminLoginError) adminLoginError.classList.add('d-none');
+
+          const modalInstance = bootstrap.Modal.getInstance(adminLoginModalEl);
+          if (modalInstance) modalInstance.hide();
+          adminLoginForm.reset();
+
+          enableAdminMode();
+          showNotification(noticeMessage, 'success');
         }
       });
     }
@@ -92,12 +112,19 @@
             credentials: 'include'
           });
         } catch (err) {
-          // Logout locally even if backend unreachable
+          // Ignore backend failure on logout
         }
         localStorage.removeItem(SESSION_KEY);
         disableAdminMode();
         showNotification('Logged out of Admin Session', 'info');
       });
+    }
+  }
+
+  function showError(msg) {
+    if (adminLoginError) {
+      adminLoginError.textContent = msg;
+      adminLoginError.classList.remove('d-none');
     }
   }
 
