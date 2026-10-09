@@ -1,0 +1,45 @@
+%PDF-1.4
+1 0 obj
+<< /Title (Resume - Sanjai K) /Author (Sanjai K) /Creator (Portfolio) >>
+endobj
+2 0 obj
+<< /Type /Catalog /Pages 3 0 R >>
+endobj
+3 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 3 0 R /MediaBox [0 0 612 792] /Contents 5 0 R /Resources << /Font << /F1 6 0 R >> >> >>
+endobj
+5 0 obj
+<< /Length 120 >>
+stream
+BT
+/F1 24 Tf
+100 700 Td
+(Sanjai K - Aspiring Full Stack Developer) Tj
+/F1 12 Tf
+0 -40 Td
+(Information Technology Student | Dhanalakshmi College of Engineering) Tj
+0 -20 Td
+(Skills: HTML, CSS, JavaScript, Bootstrap, Node.js, Express, Python, Java, MongoDB, MySQL, Swagger) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00073 n 
+0000000092 00045 n 
+0000000147 00057 n 
+0000000214 00130 n 
+0000000354 00171 n 
+0000000575 00067 n 
+trailer
+<< /Size 7 /Root 2 0 R >>
+startxref
+662
+%%EOF
