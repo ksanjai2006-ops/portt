@@ -41,7 +41,9 @@
       </a>
 
       <div class="d-flex align-items-center gap-2 order-lg-3">
-        <span id="adminStatusBadge" class="badge bg-success border border-light d-none"><i class="bi bi-shield-check me-1"></i> Admin</span>
+        <button id="adminStatusBadge" class="btn btn-sm btn-success border border-light d-none" data-bs-toggle="modal" data-bs-target="#adminDashboardModal" title="Open Admin Dashboard">
+          <i class="bi bi-shield-check me-1"></i> Admin Dashboard
+        </button>
         <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Theme">
           <i class="bi bi-sun-fill" id="themeIcon"></i>
         </button>
@@ -623,8 +625,68 @@
             </button>
           </form>
         </div>
-        <div class="modal-footer border-top-0 pt-0 justify-content-center">
-          <small class="text-muted font-monospace fs-7">Protected Administrator CMS Portal</small>
+  <!-- 17. ADMIN DASHBOARD MODAL -->
+  <div class="modal fade" id="adminDashboardModal" tabindex="-1" aria-labelledby="adminDashboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content modal-content-glass">
+        <div class="modal-header modal-header-custom">
+          <h5 class="modal-title fw-bold text-light" id="adminDashboardModalLabel">
+            <i class="bi bi-speedometer2 text-info me-2"></i> Admin Control Panel & Messages
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <div class="glass-card p-3 text-center border-info">
+                <div class="text-muted small">System Status</div>
+                <div class="h5 fw-bold text-success mb-0"><i class="bi bi-check-circle-fill me-1"></i> Admin Authenticated</div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="glass-card p-3 text-center">
+                <div class="text-muted small">Active Server</div>
+                <div class="h5 fw-bold text-info mb-0" id="adminServerStatus">Node Express (Port 5000)</div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="glass-card p-3 text-center">
+                <div class="text-muted small">Messages Count</div>
+                <div class="h5 fw-bold text-light mb-0" id="adminMessageCount">0 Messages</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0 text-light"><i class="bi bi-inbox-fill text-info me-2"></i> Received Contact Messages</h6>
+            <button id="refreshMessagesBtn" class="btn btn-sm btn-outline-info">
+              <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle rounded overflow-hidden">
+              <thead>
+                <tr>
+                  <th>Sender</th>
+                  <th>Email</th>
+                  <th>Subject</th>
+                  <th>Message</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminMessagesTableBody">
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">Loading messages...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 justify-content-between">
+          <small class="text-muted font-monospace">Portfolio Management Dashboard</small>
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
