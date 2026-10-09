@@ -1,18 +1,18 @@
 /* ==========================================================================
-   Contact Form Handler & EmailJS Wrapper
+   Contact Form Handler — Backend API + EmailJS Fallback
    Sanjai K - Portfolio
    ========================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
   const contactForm = document.getElementById("contactForm");
   const formFeedback = document.getElementById("formFeedback");
+  const API_BASE = "http://localhost:5000/api";
 
   if (!contactForm) return;
 
   contactForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Reset previous error state
     formFeedback.className = "mt-3 d-none";
     formFeedback.innerHTML = "";
 
@@ -45,32 +45,49 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Sending...`;
 
     try {
-      // Check if EmailJS is initialized
-      if (window.emailjs && window.EMAILJS_PUBLIC_KEY) {
-        await window.emailjs.send(
-          window.EMAILJS_SERVICE_ID,
-          window.EMAILJS_TEMPLATE_ID,
-          {
-            from_name: name,
-            from_email: email,
-            subject: subject,
-            message: message
-          }
-        );
-        showFeedback("Thank you! Your message has been sent successfully.", "success");
-        contactForm.reset();
-      } else {
-        // Fallback: Demo Mode (Form works visually and gives user feedback)
-        await new Promise(resolve => setTimeout(resolve, 1200));
+      // Try backend API first
+      const res = await fetch(`${API_BASE}/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name, email, subject, message })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
         showFeedback(
-          `<strong>Demo Mode Active:</strong> Thank you, <strong>${escapeHtml(name)}</strong>! Your message concept was submitted successfully. (Configure EmailJS keys to receive direct emails).`,
+          `<strong>Message Sent!</strong> Thank you, <strong>${escapeHtml(name)}</strong>. Your message has been received successfully.`,
           "success"
         );
         contactForm.reset();
+      } else {
+        showFeedback(data.message || "Failed to send message.", "danger");
       }
     } catch (err) {
-      console.error("Contact Form Error:", err);
-      showFeedback("Failed to send message. Please try again or reach out via email directly.", "danger");
+      // Fallback: try EmailJS if backend is unreachable
+      try {
+        if (window.emailjs && window.EMAILJS_PUBLIC_KEY) {
+          await window.emailjs.send(
+            window.EMAILJS_SERVICE_ID,
+            window.EMAILJS_TEMPLATE_ID,
+            { from_name: name, from_email: email, subject, message }
+          );
+          showFeedback("Thank you! Your message has been sent via email.", "success");
+          contactForm.reset();
+        } else {
+          // Demo fallback
+          await new Promise(resolve => setTimeout(resolve, 1200));
+          showFeedback(
+            `<strong>Demo Mode:</strong> Thank you, <strong>${escapeHtml(name)}</strong>! Message submitted. (Start backend or configure EmailJS for delivery).`,
+            "success"
+          );
+          contactForm.reset();
+        }
+      } catch (emailErr) {
+        console.error("Contact Form Error:", emailErr);
+        showFeedback("Failed to send message. Please try email directly.", "danger");
+      }
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalBtnContent;

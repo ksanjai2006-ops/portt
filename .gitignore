@@ -44,6 +44,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Backend Specific
+backend/node_modules/
+backend/.env
+
 # Secret Key Files / Credentials
 *.pem
 *.key
