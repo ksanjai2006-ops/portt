@@ -1,0 +1,112 @@
+/* ==========================================================================
+   Contact Form Handler — Backend API + EmailJS Fallback
+   Sanjai K - Portfolio
+   ========================================================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+  const contactForm = document.getElementById("contactForm");
+  const formFeedback = document.getElementById("formFeedback");
+  const API_BASE = "http://localhost:5000/api";
+
+  if (!contactForm) return;
+
+  contactForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    formFeedback.className = "mt-3 d-none";
+    formFeedback.innerHTML = "";
+
+    const nameInput = document.getElementById("contactName");
+    const emailInput = document.getElementById("contactEmail");
+    const subjectInput = document.getElementById("contactSubject");
+    const messageInput = document.getElementById("contactMessage");
+    const submitBtn = document.getElementById("contactSubmitBtn");
+
+    const name = nameInput ? nameInput.value.trim() : "";
+    const email = emailInput ? emailInput.value.trim() : "";
+    const subject = subjectInput ? subjectInput.value.trim() : "";
+    const message = messageInput ? messageInput.value.trim() : "";
+
+    // Field Validation
+    if (!name || !email || !subject || !message) {
+      showFeedback("Please fill out all required fields.", "danger");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showFeedback("Please enter a valid email address.", "danger");
+      return;
+    }
+
+    // Button loading state
+    const originalBtnContent = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Sending...`;
+
+    try {
+      // Try backend API first
+      const res = await fetch(`${API_BASE}/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name, email, subject, message })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        showFeedback(
+          `<strong>Message Sent!</strong> Thank you, <strong>${escapeHtml(name)}</strong>. Your message has been received successfully.`,
+          "success"
+        );
+        contactForm.reset();
+      } else {
+        showFeedback(data.message || "Failed to send message.", "danger");
+      }
+    } catch (err) {
+      // Fallback: try EmailJS if backend is unreachable
+      try {
+        if (window.emailjs && window.EMAILJS_PUBLIC_KEY) {
+          await window.emailjs.send(
+            window.EMAILJS_SERVICE_ID,
+            window.EMAILJS_TEMPLATE_ID,
+            { from_name: name, from_email: email, subject, message }
+          );
+          showFeedback("Thank you! Your message has been sent via email.", "success");
+          contactForm.reset();
+        } else {
+          // Demo fallback
+          await new Promise(resolve => setTimeout(resolve, 1200));
+          showFeedback(
+            `<strong>Demo Mode:</strong> Thank you, <strong>${escapeHtml(name)}</strong>! Message submitted. (Start backend or configure EmailJS for delivery).`,
+            "success"
+          );
+          contactForm.reset();
+        }
+      } catch (emailErr) {
+        console.error("Contact Form Error:", emailErr);
+        showFeedback("Failed to send message. Please try email directly.", "danger");
+      }
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnContent;
+    }
+  });
+
+  function showFeedback(msg, type) {
+    if (!formFeedback) return;
+    formFeedback.className = `alert alert-${type} mt-3 d-block glass-card border-${type}`;
+    formFeedback.innerHTML = msg;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, (m) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[m]));
+  }
+});

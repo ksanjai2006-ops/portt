@@ -8,11 +8,17 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 
+const path = require('path');
+
 const authRoutes = require('./routes/auth');
 const contactRoutes = require('./routes/contact');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, '../')));
+app.use('/frontend', express.static(path.join(__dirname, '../frontend')));
 
 // Middleware
 app.use(express.json());
