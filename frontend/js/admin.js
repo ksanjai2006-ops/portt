@@ -50,6 +50,16 @@
   }
 
   function bindAdminEvents() {
+    if (adminNavBtn) {
+      adminNavBtn.addEventListener('click', (e) => {
+        if (window.bootstrap && adminLoginModalEl) {
+          e.preventDefault();
+          const loginModal = bootstrap.Modal.getOrCreateInstance(adminLoginModalEl);
+          loginModal.show();
+        }
+      });
+    }
+
     if (adminLoginForm) {
       adminLoginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
